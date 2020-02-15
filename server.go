@@ -301,7 +301,12 @@ func (s *Server) processRequest() error {
 // server to finish outstanding transfers and stops server.
 func (s *Server) Shutdown() {
 	if !s.singlePort {
-		s.conn.Close()
+		// Shutdown called before Serve?
+		if s.conn == nil {
+			return
+		}
+		defer s.conn.Close()
+		s.conn.SetReadDeadline(time.Unix(1, 0))
 	}
 	q := make(chan struct{})
 	s.quit <- q
